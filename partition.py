@@ -131,7 +131,9 @@ if __name__ == '__main__':
             class_id = i
             break
     dataset = np.array(dataset)
-    num_class = int(np.max(dataset[:,class_id])) + 1
+    # num_class = int(np.max(dataset[:,class_id])) + 1
+    num_class = len(np.unique(dataset[:, class_id]))
+    print(f'num classes = {num_class}')
 
     net_dataidx_map = partition_data(dataset, class_id, num_class, args.partition, args.n_parties, args.beta, args.init_seed)
     mkdirs(args.outputdir)

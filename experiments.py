@@ -95,6 +95,16 @@ def init_nets(net_configs, dropout_p, n_parties, args):
             for net_i in range(n_parties):
                 if args.dataset == "generated":
                     net = PerceptronModel()
+                elif os.path.exists(f"{args.datadir}/{args.dataset}"):
+                    import pandas as pd
+                    # Again an ugly hack
+                    df = pd.read_csv(f"{args.datadir}/{args.dataset}.csv", header=0)
+                    assert "Class" in df.columns
+                    input_size = df.shape[1] - 1
+                    output_size = len(df["Class"].unique())
+                    hidden_sizes = [32, 16, 8]
+                    logging.warning(f"Ignore modoel [{args.model}] -- assume MLP")
+                    net = FcNet(input_size, hidden_sizes, output_size, dropout_p)
                 elif args.model == "mlp":
                     if args.dataset == 'covtype':
                         input_size = 54
@@ -813,10 +823,12 @@ if __name__ == '__main__':
         args.log_file_name = 'experiment_log-%s' % (datetime.datetime.now().strftime("%Y-%m-%d-%H:%M-%S"))
     log_path=args.log_file_name+'.log'
     logging.basicConfig(
-        filename=os.path.join(args.logdir, log_path),
-        # filename='/home/qinbin/test.log',
+        handlers=[
+            logging.FileHandler(f"{args.logdir}/{log_path}"),
+            logging.StreamHandler()
+        ],
         format='%(asctime)s %(levelname)-8s %(message)s',
-        datefmt='%m-%d %H:%M', level=logging.DEBUG, filemode='w')
+        datefmt='%m-%d %H:%M', level=logging.DEBUG)
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -838,8 +850,7 @@ if __name__ == '__main__':
                                                                                         args.batch_size,
                                                                                         32)
 
-    print("len train_dl_global:", len(train_ds_global))
-
+    logging.debug(f"len train_dl_global: {len(train_ds_global)}")
 
     data_size = len(test_ds_global)
 

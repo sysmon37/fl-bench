@@ -742,6 +742,32 @@ class FEMNIST(MNIST):
         )
 
 
+class Tabular(MNIST):
+
+    def __init__(self, datadir, dataset, dataidxs=None, train=True):
+        super(MNIST, self).__init__(datadir, transform=None, target_transform=None)
+        self.train = train
+        self.dataidxs = dataidxs
+
+        if self.train:
+            self.data = np.load(f"{datadir}/{dataset}/X_train.npy")
+            self.targets = np.load(f"{datadir}/{dataset}/y_train.npy")
+        else:
+            self.data = np.load(f"{datadir}/{dataset}/X_test.npy")
+            self.targets = np.load(f"{datadir}/{dataset}/y_test.npy")
+
+        if self.dataidxs is not None:
+            self.data = self.data[self.dataidxs]
+            self.targets = self.targets[self.dataidxs]
+
+
+    def __getitem__(self, index):
+        data, target = self.data[index], self.targets[index]
+        return data, target
+
+    def __len__(self):
+        return len(self.data)
+
 class Generated(MNIST):
 
     def __init__(self, root, dataidxs=None, train=True, transform=None, target_transform=None,
