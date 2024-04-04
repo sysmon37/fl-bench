@@ -95,6 +95,9 @@ def partition_data(dataset, class_id, K, partition, n_parties, beta, seed):
         for i in range(n_parties):
             net_dataidx_map[i] = net_dataidx_map[i].tolist()
 
+    for i, d in net_dataidx_map.items():
+        print(f"#{i + 1} = {len(d)}")
+
     return net_dataidx_map
 
 
