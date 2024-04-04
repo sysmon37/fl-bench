@@ -192,13 +192,17 @@ def load_csv_fle(file_path, class_col="Class", train_ratio=0.75):
     from sklearn.model_selection import train_test_split
     df_train, df_test = train_test_split(df, train_size=train_ratio, stratify=df[class_col],
                                          random_state=np.random.seed(2020))
-    # Apply simple imputation with means and medians
+    # Apply simple imputation with means and medians and then rescale the data
     for c in [c for c in df.columns if c != class_col]:
         known = df_train[c].median() if len(df_train[c].unique()) < 5 else df_train[c].mean()
-        logger.info(f"Column {c} => replacement = {known}")
         df_train[c] = df_train[c].fillna(known)
         df_test[c] = df_test[c].fillna(known)
-
+        train_max, train_min = df_train[c].max(), df_train[c].min()
+        logger.info(f"Column {c} => replacement = {known} | {train_min} .. {train_max}")
+        train_range = train_max - train_min
+        if train_range != 0:
+            df_train[c] = (df_train[c] - train_min) / train_range
+            df_test[c] = (df_test[c] - train_min) / train_range
     return _to_X_y(df_train) + _to_X_y(df_test)
 
 
