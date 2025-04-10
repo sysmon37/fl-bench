@@ -606,7 +606,8 @@ def local_train_net(nets, selected, args, net_dataidx_map, test_dl = None, devic
         if args.noise_type == 'space':
             train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level, net_id, args.n_parties-1)
         else:
-            noise_level = args.noise / (args.n_parties - 1) * net_id
+            # Gracefully handle a setting with only one client -- this is to simulate centralized approach to learning
+            noise_level = 0 if args.n_parties == 1 else args.noise / (args.n_parties - 1) * net_id
             train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level)
         train_dl_global, test_dl_global, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32)
         n_epoch = args.epochs
